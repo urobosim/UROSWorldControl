@@ -23,6 +23,7 @@ private:
 
 public:
 
+  //Deprected
   FROSResetLevelServer(FString Namespace, FString Name, UObject* InOwner) :
 		FROSBridgeSrvServer(Namespace + TEXT("/") + Name, TEXT("world_control_msgs/ResetLevel"))
 	{
@@ -30,6 +31,11 @@ public:
           Owner = Cast<UGameInstance>(InOwner);
 	}
 
+  FROSResetLevelServer(FString Namespace, FString Name, UWorld* InWorld) :
+		FROSBridgeSrvServer(Namespace + TEXT("/") + Name, TEXT("world_control_msgs/ResetLevel"))
+	{
+          World = InWorld;
+	}
 
 	TSharedPtr<FROSBridgeSrv::SrvRequest> FromJson(TSharedPtr<FJsonObject> JsonObject) const override;
 

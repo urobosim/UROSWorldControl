@@ -20,7 +20,7 @@ class UROSCONTROL_API UWorldControlGameInstance : public UROSBridgeGameInstance
 
   UWorldControlGameInstance();
 
-  UPROPERTY(EditAnywhere, Instanced)
+  UPROPERTY(Instanced)
     URWCManager* Manager;
 
   UPROPERTY(EditAnywhere, Category = "ROS")

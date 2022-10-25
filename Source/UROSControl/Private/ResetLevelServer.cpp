@@ -16,7 +16,7 @@ TSharedPtr<FROSBridgeSrv::SrvRequest> FROSResetLevelServer::FromJson(TSharedPtr<
 TSharedPtr<FROSBridgeSrv::SrvResponse> FROSResetLevelServer::Callback(TSharedPtr<FROSBridgeSrv::SrvRequest> Request)
 {
         bool ServiceSuccess = false;
-        World = Owner->GetWorld();
+        // World = Owner->GetWorld();
         if(!World)
           {
               UE_LOG(LogTemp, Error, TEXT("No World"));
