@@ -27,8 +27,8 @@ public:
   FROSResetLevelServer(FString Namespace, FString Name, UObject* InOwner) :
 		FROSBridgeSrvServer(Namespace + TEXT("/") + Name, TEXT("world_control_msgs/ResetLevel"))
 	{
-          World = nullptr;
           Owner = Cast<UGameInstance>(InOwner);
+          World = Owner->GetWorld();
 	}
 
   FROSResetLevelServer(FString Namespace, FString Name, UWorld* InWorld) :
