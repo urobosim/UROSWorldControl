@@ -40,7 +40,33 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
 	GEditor->BeginTransaction(FText::FromString(TEXT("Relocating: ")
 		+ Actor->GetActorLabel()));
 #endif
-	bool bSuccess = Actor->TeleportTo(Location, Rotator);
+        bool bSuccess = false;
+        bool bTimeout = false;
+        FVector Offset = FVector(0, 0, 0);
+        uint32 Count = 0;
+
+        // Cast<UStaticMeshComponent>(Actor->GetRootComponent())->SetSimulatePhysics(false);
+        Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::TeleportPhysics);
+        while(!bSuccess and !bTimeout)
+          {
+            FHitResult SweepHitResult;
+            Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::TeleportPhysics);
+
+            Count++;
+            bSuccess = !SweepHitResult.bBlockingHit;
+            FVector Normal = SweepHitResult.ImpactNormal;
+
+            // FVector Projection = Normal.ProjectOnTo(Location);
+            // UE_LOG(LogTemp, Warning, TEXT("[%s]: Projection: %s"), *FString(__FUNCTION__), *Projection.ToString());
+
+            Offset = Offset + Normal;
+            if(Count >= 10)
+              {
+                bTimeout = true;
+              }
+          }
+
+        // Cast<UStaticMeshComponent>(Actor->GetRootComponent())->SetSimulatePhysics(true);
 	if (!bSuccess)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[%s]: Could not set %s to locaiton: %s, with Rotation: %s"), *FString(__FUNCTION__),
@@ -48,7 +74,7 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
 	}
 	else
 	{
-		Actor->Modify();
+		// Actor->Modify();
 	}
 #if WITH_EDITOR
 	GEditor->EndTransaction();
