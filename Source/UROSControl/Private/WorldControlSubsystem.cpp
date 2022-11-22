@@ -12,6 +12,8 @@ UWorldControlSubsystem::UWorldControlSubsystem()
 void UWorldControlSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 
+  Super::Initialize(Collection);
+
   const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
   if (Settings->bEnableWorldControl)
     {
