@@ -181,6 +181,34 @@ bool FAssetModifier::AttachToParent(AActor* Parent, AActor* Child)
 }
 
 
+TArray<FString> FAssetModifier::FindAsset(FString Name, FString StartDir)
+{
+	UStaticMesh* Mesh = nullptr;
+	//Look for file Recursively
+        FString FoundPath = TEXT("");
+	FString Filename = Name.StartsWith(TEXT("SM_")) ? TEXT("") : TEXT("SM_");
+	Filename += Name;
+	Filename += Name.EndsWith(TEXT(".uasset")) ? TEXT("") : TEXT(".uasset");
+        UE_LOG(LogTemp, Warning, TEXT("[%s]: SpawnModel Name %s"), *FString(__FUNCTION__),*Name);
+
+	TArray<FString> FileLocations;
+    FFileManagerGeneric Fm;
+	Fm.FindFilesRecursive(FileLocations, *FPaths::ProjectContentDir().Append(StartDir), *Filename, true, false, true);
+
+	if (FileLocations.Num() == 0)
+	{
+		//Try again with whole ContentDir
+		Fm.FindFilesRecursive(FileLocations, *FPaths::ProjectContentDir(), *Filename, true, false, true);
+	}
+
+	if (FileLocations.Num() == 0)
+          {
+            UE_LOG(LogTemp, Warning, TEXT("[%s] No Files found containing"), *FString(__FUNCTION__),*Name);
+          }
+
+	return FileLocations;
+}
+
 UStaticMesh* FAssetModifier::LoadMesh(FString Name, FString StartDir)
 {
 	UStaticMesh* Mesh = nullptr;

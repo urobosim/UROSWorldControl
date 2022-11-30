@@ -28,17 +28,46 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 	FActorSpawnParameters SpawnParams;
 
 	//Load Mesh and check if it succeded.
-	UStaticMesh* Mesh = FAssetModifier::LoadMesh(Params.Name, Params.StartDir);
-	if (!Mesh)
-	{
-        UE_LOG(LogTemp, Error, TEXT("[%s]: Could not find Mesh: %s."), *FString(__FUNCTION__), *Params.Name);
+        TArray<FString> MeshPaths = FAssetModifier::FindAsset(Params.Name, Params.StartDir);
+
+	AStaticMeshActor* SpawnedItem;
+        UClass* RetClass = nullptr;
+
+        for(auto& Path : MeshPaths)
+          {
+            FString PackageName = "";
+            FString Reason = "";
+            FPackageName::TryConvertFilenameToLongPackageName(Path, PackageName, &Reason);
+            UPackage* Package = LoadPackage(nullptr, *PackageName, 1);
+            if(Package)
+              {
+                UObject* Object = Package->FindAssetInPackage();
+                UBlueprint* BlueprintOb = Cast<UBlueprint>(Object);
+                RetClass = BlueprintOb ? *BlueprintOb->GeneratedClass : nullptr;
+                UE_LOG(LogTemp, Error, TEXT("[%s]: Package is Blueprint"), *FString(__FUNCTION__));
+              }
+            else
+              {
+
+                UE_LOG(LogTemp, Error, TEXT("[%s]: Package not found"), *FString(__FUNCTION__));
+              }
+          }
+
+        UStaticMesh* Mesh = nullptr;
+        if(!RetClass)
+          {
+            Mesh = FAssetModifier::LoadMesh(Params.Name, Params.StartDir);
+            if (!Mesh)
+              {
+                UE_LOG(LogTemp, Error, TEXT("[%s]: Could not find Mesh: %s."), *FString(__FUNCTION__), *Params.Name);
 #if WITH_EDITOR
 		GEditor->EndTransaction();
 #endif
 		return false;
-	}
+              }
+          }
 
-	AStaticMeshActor* SpawnedItem;
+	// AStaticMeshActor* SpawnedItem;
 
 	//Check if Id is used already
 	TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), Params.Id);
@@ -47,7 +76,15 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 	{
 		// SpawnCollission Testing
 		TArray<FOverlapResult> Results;
-		bool bIsBlocked = World->OverlapMultiByChannel(Results, Params.Location, Params.Rotator.Quaternion(), ECollisionChannel::ECC_PhysicsBody, FCollisionShape::MakeBox(Mesh->GetBoundingBox().GetExtent()));
+                bool bIsBlocked = false;
+                if(!RetClass)
+                  {
+                    bIsBlocked = World->OverlapMultiByChannel(Results,
+                                                                   Params.Location,
+                                                                   Params.Rotator.Quaternion(),
+                                                                   ECollisionChannel::ECC_PhysicsBody,
+                                                                   FCollisionShape::MakeBox(Mesh->GetBoundingBox().GetExtent()));
+                  }
 
 		if (bIsBlocked && Params.bSpawnCollisionCheck)
 		{
@@ -60,12 +97,22 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		}
 
 		//Actual Spawning MeshComponent
-		SpawnedItem = World->SpawnActor<AStaticMeshActor>(Params.Location, Params.Rotator, SpawnParams);
+                if(RetClass)
+                  {
+                    SpawnedItem = World->SpawnActor<AStaticMeshActor>(RetClass, Params.Location, Params.Rotator, SpawnParams);
+                  }
+                else
+                  {
+                    SpawnedItem = World->SpawnActor<AStaticMeshActor>(Params.Location, Params.Rotator, SpawnParams);
+                  }
 
 		// Needs to be movable if the game is running.
 		SpawnedItem->SetMobility(EComponentMobility::Movable);
 		//Assigning the Mesh and Material to the Component
-		SpawnedItem->GetStaticMeshComponent()->SetStaticMesh(Mesh);
+                if(!RetClass)
+                  {
+                    SpawnedItem->GetStaticMeshComponent()->SetStaticMesh(Mesh);
+                  }
 
 		if (Params.MaterialPaths.Num())
 		{
@@ -97,7 +144,7 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		//ID is already taken
 		UE_LOG(LogTemp, Error, TEXT("[%s]: Semlog id: \"%s\" is not unique, therefore nothing was spawned."), *FString(__FUNCTION__), *Params.Id);
 		ErrType = "1";
-	
+
 #if WITH_EDITOR
 	GEditor->EndTransaction();
 #endif
@@ -302,4 +349,3 @@ bool FAssetSpawner::SpawnProMeshAsset(UWorld *World, FSpawnAssetParams Params, F
 //    return SpawnedActor;
     return true;
 }
-
