@@ -7,14 +7,14 @@ public class UWorldControl : ModuleRules
 	public UWorldControl(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
 			}
 			);
-				
-		
+
+
 		PrivateIncludePaths.AddRange(
 			new string[] {
 
@@ -33,25 +33,26 @@ public class UWorldControl : ModuleRules
                 "Core",
                 "UTags",
                 "UIds",
-				// ... add other public dependencies that you statically link with here ...
+                                // ... add other public dependencies that you statically link with here ...
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
 				"Engine",
+                                "DeveloperSettings",
 				"Slate",
 				"SlateCore",
                 //"CustomMeshComponent",
                 //"ProceduralMeshComponent",
-				// ... add private dependencies that you statically link with here ...	
+				// ... add private dependencies that you statically link with here ...
 			}
 			);
-		
-		
+
+
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{

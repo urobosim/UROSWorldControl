@@ -53,5 +53,3 @@ public:
     static bool SpawnProMeshAsset(UWorld* World,FSpawnAssetParams Params,FString &FinalActorName, FString &ErrType);
 
 };
-
-

@@ -26,9 +26,9 @@ public class UROSControl : ModuleRules
 			new string[]
 			{
 				"Core",
-                "UWorldControl",
-			    "UROSBridge",
-                "UTags",
+                                "UWorldControl",
+                                "UROSBridge",
+                                "UTags",
 				"UIds",
 				"UConversions",
 				// ... add other public dependencies that you statically link with here ...

@@ -3,7 +3,9 @@
 #include "Tags.h"
 #include "Engine/StaticMeshActor.h"
 #include "BoundingBox.h"
+#include "AssetUtils.h"
 #if WITH_EDITOR
+#include "WorldControlSettings.h"
 #include "Engine/EngineTypes.h"
 #include "Editor.h"
 #endif
@@ -44,7 +46,6 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                 UObject* Object = Package->FindAssetInPackage();
                 UBlueprint* BlueprintOb = Cast<UBlueprint>(Object);
                 RetClass = BlueprintOb ? *BlueprintOb->GeneratedClass : nullptr;
-                UE_LOG(LogTemp, Error, TEXT("[%s]: Package is Blueprint"), *FString(__FUNCTION__));
               }
             else
               {
@@ -107,7 +108,8 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                   }
 
 		// Needs to be movable if the game is running.
-		SpawnedItem->SetMobility(EComponentMobility::Movable);
+                SpawnedItem->SetMobility(EComponentMobility::Movable);
+
 		//Assigning the Mesh and Material to the Component
                 if(!RetClass)
                   {
@@ -137,6 +139,19 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		SpawnedItem->GetStaticMeshComponent()->SetMassOverrideInKg(NAME_None, Properties.Mass);
 
 		SpawnedItem->SetMobility(Properties.Mobility);
+
+                UAssetUtils* AssetUtil = NewObject<UAssetUtils>(SpawnedItem);
+
+
+                const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
+
+                if(Settings->bUseResetOrientation)
+                  {
+                    FTimerHandle MyTimerHandle;
+                    // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
+                    FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, SpawnedItem, Params.Rotator);
+                    SpawnedItem->GetWorldTimerManager().SetTimer(MyTimerHandle, ResetOrientationDelegate, Settings->ResetOrientationDelay, false);
+                  }
 
 	}
 	else
@@ -176,8 +191,6 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 
 	return true;
 }
-
-
 
 
 

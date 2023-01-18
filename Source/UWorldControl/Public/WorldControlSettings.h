@@ -10,7 +10,7 @@
  *
  */
 UCLASS(Config=Ros, defaultconfig, meta = (DisplayName="WorldControl"))
-class UROSCONTROL_API UWorldControlSettings : public UDeveloperSettings
+class UWORLDCONTROL_API UWorldControlSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
@@ -21,4 +21,10 @@ public:
 
   UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
     FString Namespace = FString("UnrealSim");
+
+  UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
+    bool bUseResetOrientation = false;
+
+  UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
+    float ResetOrientationDelay = 1.0;
 };

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "ROSSubsystem.h"
 #include "RWCManager.h"
+#include "WorldControlSettings.h"
 #include "WorldControlSubsystem.generated.h"
 
 /**

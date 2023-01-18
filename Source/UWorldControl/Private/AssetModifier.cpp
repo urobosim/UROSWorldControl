@@ -5,6 +5,8 @@
 #include "FileManagerGeneric.h"
 #endif
 #include "Tags.h"
+#include "AssetUtils.h"
+#include "WorldControlSettings.h"
 #if WITH_EDITOR
 #include "Editor.h"
 #endif
@@ -45,12 +47,11 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
         FVector Offset = FVector(0, 0, 0);
         uint32 Count = 0;
 
-        // Cast<UStaticMeshComponent>(Actor->GetRootComponent())->SetSimulatePhysics(false);
-        Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::TeleportPhysics);
+        Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
         while(!bSuccess and !bTimeout)
           {
             FHitResult SweepHitResult;
-            Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::TeleportPhysics);
+            Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::ResetPhysics);
 
             Count++;
             bSuccess = !SweepHitResult.bBlockingHit;
@@ -63,9 +64,21 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
             if(Count >= 10)
               {
                 bTimeout = true;
+                UE_LOG(LogTemp, Warning, TEXT("[%s]: Timeout"), *FString(__FUNCTION__));
               }
           }
 
+        UAssetUtils* AssetUtil = NewObject<UAssetUtils>(Actor);
+
+        const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
+
+        if(Settings->bUseResetOrientation)
+          {
+            FTimerHandle MyTimerHandle;
+            // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
+            FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, Cast<AStaticMeshActor>(Actor), Rotator);
+            Actor->GetWorldTimerManager().SetTimer(MyTimerHandle, ResetOrientationDelegate, Settings->ResetOrientationDelay, false);
+          }
         // Cast<UStaticMeshComponent>(Actor->GetRootComponent())->SetSimulatePhysics(true);
 	if (!bSuccess)
 	{
