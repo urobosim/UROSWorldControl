@@ -28,16 +28,17 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 
 	//Setup SpawnParameters
 	FActorSpawnParameters SpawnParams;
+	//Load Mesh and check if it succeded.
+        TArray<FString> MeshPaths = FAssetModifier::FindAsset(Params.Name, Params.StartDir);
   #if !WITH_EDITOR
   // Set the ActorName explicitly if supplied for non-editor builds
   if( !Params.OverrideName.IsEmpty())
   {
     SpawnParams.Name = *Params.OverrideName;
+    UE_LOG(LogTemp, Warning, TEXT("[%s]: Override name %s"), *FString(__FUNCTION__), *Params.OverrideName);
   }
   #endif
 
-	//Load Mesh and check if it succeded.
-        TArray<FString> MeshPaths = FAssetModifier::FindAsset(Params.Name, Params.StartDir);
 
 	AStaticMeshActor* SpawnedItem;
         UClass* RetClass = nullptr;
@@ -51,8 +52,13 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
             if(Package)
               {
                 UObject* Object = Package->FindAssetInPackage();
+#if WITH_EDITOR
                 UBlueprint* BlueprintOb = Cast<UBlueprint>(Object);
                 RetClass = BlueprintOb ? *BlueprintOb->GeneratedClass : nullptr;
+#else
+                FString SearchString = Package->GetName() + TEXT(".") + Object->GetName();
+                RetClass = LoadClass<AStaticMeshActor>(NULL, *SearchString, NULL, LOAD_None, NULL);
+#endif
               }
             else
               {

@@ -230,7 +230,7 @@ UStaticMesh* FAssetModifier::LoadMesh(FString Name, FString StartDir)
 	FString Filename = Name.StartsWith(TEXT("SM_")) ? TEXT("") : TEXT("SM_");
 	Filename += Name;
 	Filename += Name.EndsWith(TEXT(".uasset")) ? TEXT("") : TEXT(".uasset");
-    UE_LOG(LogTemp, Warning, TEXT("[%s]: SpawnModel Name %s"), *FString(__FUNCTION__),*Name);
+        UE_LOG(LogTemp, Warning, TEXT("[%s]: SpawnModel Name %s"), *FString(__FUNCTION__),*Name);
 
 	TArray<FString> FileLocations;
     FFileManagerGeneric Fm;
