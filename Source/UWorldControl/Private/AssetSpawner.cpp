@@ -52,13 +52,20 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
             if(Package)
               {
                 UObject* Object = Package->FindAssetInPackage();
+                if(Object)
+                  {
 #if WITH_EDITOR
-                UBlueprint* BlueprintOb = Cast<UBlueprint>(Object);
-                RetClass = BlueprintOb ? *BlueprintOb->GeneratedClass : nullptr;
+                    UBlueprint* BlueprintOb = Cast<UBlueprint>(Object);
+                    RetClass = BlueprintOb ? *BlueprintOb->GeneratedClass : nullptr;
 #else
-                FString SearchString = Package->GetName() + TEXT(".") + Object->GetName();
-                RetClass = LoadClass<AStaticMeshActor>(NULL, *SearchString, NULL, LOAD_None, NULL);
+                    FString SearchString = Package->GetName() + TEXT(".") + Object->GetName();
+                    RetClass = LoadClass<AStaticMeshActor>(NULL, *SearchString, NULL, LOAD_None, NULL);
 #endif
+                    if(RetClass)
+                      {
+                        break;
+                      }
+                  }
               }
             else
               {
@@ -91,7 +98,7 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		// SpawnCollission Testing
 		TArray<FOverlapResult> Results;
                 bool bIsBlocked = false;
-                if(!RetClass)
+                if(!RetClass && Mesh)
                   {
                     bIsBlocked = World->OverlapMultiByChannel(Results,
                                                                    Params.Location,
@@ -118,6 +125,12 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                 else
                   {
                     SpawnedItem = World->SpawnActor<AStaticMeshActor>(Params.Location, Params.Rotator, SpawnParams);
+                  }
+
+                if(!SpawnedItem)
+                  {
+                    UE_LOG(LogTemp, Error, TEXT("[%s:%s]: SpawnedItem for %s nullptr "), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *Params.Id);
+                    return false;
                   }
 
 		// Needs to be movable if the game is running.
@@ -158,12 +171,15 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 
                 const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
 
-                if(Settings->bUseResetOrientation)
+                if(AssetUtil)
                   {
-                    FTimerHandle MyTimerHandle;
-                    // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
-                    FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, SpawnedItem, Params.Rotator);
-                    SpawnedItem->GetWorldTimerManager().SetTimer(MyTimerHandle, ResetOrientationDelegate, Settings->ResetOrientationDelay, false);
+                    if(Settings->bUseResetOrientation)
+                      {
+                        FTimerHandle MyTimerHandle;
+                        // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
+                        FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, SpawnedItem, Params.Rotator);
+                        SpawnedItem->GetWorldTimerManager().SetTimer(MyTimerHandle, ResetOrientationDelegate, Settings->ResetOrientationDelay, false);
+                      }
                   }
 
 	}

@@ -13,6 +13,7 @@
 #include "Engine/StaticMesh.h"
 #include "Tags.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FObjectAssertion, UObject * /*PerceivedObject*/);
 
 class FROSSpawnModelServer : public FROSBridgeSrvServer
 {
@@ -35,7 +36,9 @@ private:
 public:
 	URWCManager* Controller;
 
-	FROSSpawnModelServer(FString Namespace, FString Name, UWorld* InWorld, URWCManager* InController) :
+        FObjectAssertion OnObjectAsserted;
+
+        FROSSpawnModelServer(FString Namespace, FString Name, UWorld* InWorld, URWCManager* InController) :
 		FROSBridgeSrvServer(Namespace + TEXT("/") + Name, TEXT("world_control_msgs/SpawnModel"))
 	{
 		Controller = InController;

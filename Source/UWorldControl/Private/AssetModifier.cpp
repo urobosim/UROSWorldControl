@@ -10,6 +10,7 @@
 #if WITH_EDITOR
 #include "Editor.h"
 #endif
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 
 bool FAssetModifier::RemoveAsset(UWorld* World, FString Id)
 {
@@ -47,18 +48,62 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
         FVector Offset = FVector(0, 0, 0);
         uint32 Count = 0;
 
-        Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
+        UAssetUtils* AssetUtil = NewObject<UAssetUtils>(Actor);
+        const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
+
+        TArray<UPhysicsConstraintComponent*> Constraints;
+        UStaticMeshComponent* Oj1 = nullptr;
+        UStaticMeshComponent* Oj2 = nullptr;
+        Actor->GetComponents<UPhysicsConstraintComponent>(Constraints, false);
+
+        for(auto& Constraint : Constraints)
+          {
+            if(!Constraint->IsBroken())
+              {
+                //TODO: Should it be checked if phisics is enabled or not?
+                if(AActor* Actor1 = Constraint->ConstraintActor1)
+                  {
+                    Oj1 = Cast<UStaticMeshComponent>(Actor1->GetDefaultSubobjectByName(Constraint->ComponentName1.ComponentName));
+                    if(Oj1)
+                      {
+                        Oj1->SetSimulatePhysics(false);
+
+                        if(Cast<USceneComponent>(Oj1) != Actor->GetRootComponent())
+                          {
+                            Oj1->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, false), NAME_None);
+                          }
+                      }
+                  }
+
+                if(AActor* Actor2 = Constraint->ConstraintActor2)
+                  {
+                    Oj2 = Cast<UStaticMeshComponent>(Actor2->GetDefaultSubobjectByName(Constraint->ComponentName2.ComponentName));
+                    if(Oj2)
+                      {
+                        Oj2->SetSimulatePhysics(false);
+                      }
+                    if(Cast<USceneComponent>(Oj2) != Actor->GetRootComponent())
+                      {
+                        Oj2->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, false), NAME_None);
+                      }
+                  }
+              }
+
+            FTimerDelegate ConstraintInit = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ReinitConstraint, Constraint, Oj1, Oj2);
+            Actor->GetWorldTimerManager().SetTimerForNextTick(ConstraintInit);
+          }
+
+
+
         while(!bSuccess and !bTimeout)
           {
             FHitResult SweepHitResult;
-            Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::ResetPhysics);
 
+            Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
+            Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::ResetPhysics);
             Count++;
             bSuccess = !SweepHitResult.bBlockingHit;
             FVector Normal = SweepHitResult.ImpactNormal;
-
-            // FVector Projection = Normal.ProjectOnTo(Location);
-            // UE_LOG(LogTemp, Warning, TEXT("[%s]: Projection: %s"), *FString(__FUNCTION__), *Projection.ToString());
 
             Offset = Offset + Normal;
             if(Count >= 10)
@@ -68,27 +113,26 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
               }
           }
 
-        UAssetUtils* AssetUtil = NewObject<UAssetUtils>(Actor);
-
-        const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
 
         if(Settings->bUseResetOrientation)
           {
             FTimerHandle MyTimerHandle;
             // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
             FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, Cast<AStaticMeshActor>(Actor), Rotator);
-            Actor->GetWorldTimerManager().SetTimer(MyTimerHandle, ResetOrientationDelegate, Settings->ResetOrientationDelay, false);
+            Actor->GetWorldTimerManager().SetTimerForNextTick(ResetOrientationDelegate);
           }
-        // Cast<UStaticMeshComponent>(Actor->GetRootComponent())->SetSimulatePhysics(true);
+
+        FTimerDelegate ResetPhysics1 = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::SetPhysicsEnabled, Oj1, true);
+        FTimerDelegate ResetPhysics2 = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::SetPhysicsEnabled, Oj2, true);
+        Actor->GetWorldTimerManager().SetTimerForNextTick(ResetPhysics1);
+        Actor->GetWorldTimerManager().SetTimerForNextTick(ResetPhysics2);
+
 	if (!bSuccess)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[%s]: Could not set %s to locaiton: %s, with Rotation: %s"), *FString(__FUNCTION__),
 			*Actor->GetName(), *Location.ToString(), *Rotator.ToString());
 	}
-	else
-	{
-		// Actor->Modify();
-	}
+
 #if WITH_EDITOR
 	GEditor->EndTransaction();
 #endif

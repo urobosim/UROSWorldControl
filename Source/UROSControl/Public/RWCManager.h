@@ -24,6 +24,7 @@ public:
 	virtual void Register(FString DefaultNamespace, UWorld* InWorld = nullptr) override;
 	virtual void ConnectToHandler(const TSharedPtr<FROSBridgeHandler>& ROSHandler);
 
+        FString GetNamespace();
 private:
 	FString Namespace;
         UWorld* World;

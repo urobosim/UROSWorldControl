@@ -39,7 +39,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnModelServer::Callback(TSharedPtr
 	Params.PhysicsProperties.Mobility = SpawnMeshRequest->GetPhysicsProperties().GetMobility();
 	Params.PhysicsProperties.bSimulatePhysics = SpawnMeshRequest->GetPhysicsProperties().IsSimulatePhysics();
 
-	
+
 	Params.PhysicsProperties.bGravity = SpawnMeshRequest->GetPhysicsProperties().GetGravity();
 	Params.PhysicsProperties.bGenerateOverlapEvents = SpawnMeshRequest->GetPhysicsProperties().GetGenerateOverlapEvents();
 	Params.PhysicsProperties.Mass = SpawnMeshRequest->GetPhysicsProperties().GetMass();
@@ -55,9 +55,17 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnModelServer::Callback(TSharedPtr
 	FString ErrType;
 	// Execute on game thread
 	double start = FPlatformTime::Seconds();
+        AActor* SpawnedActor = nullptr;
 	FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([&]()
 	{
-		ServiceSuccess = FAssetSpawner::SpawnAsset(World, Params, FinalActorName, ErrType);
+          ServiceSuccess = FAssetSpawner::SpawnAsset(World, Params, FinalActorName, ErrType);
+          // TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), FinalActorName);
+          // for (auto AssertedActor : Actors)
+          //   {
+          //     UE_LOG(LogTemp, Display, TEXT("broadcast assert object %s"), *AssertedActor->GetName());
+          //     OnObjectAsserted.Broadcast(AssertedActor);
+          //   }
+
 	}, TStatId(), nullptr, ENamedThreads::GameThread);
 
 	//wait code above to complete
@@ -65,7 +73,18 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnModelServer::Callback(TSharedPtr
 	double end = FPlatformTime::Seconds();
 	UE_LOG(LogTemp, Display, TEXT("SpawnModel executed in %f seconds."), end-start);
 	UE_LOG(LogTemp, Display, TEXT("ErrType is: %s"), *ErrType);
+
+	FGraphEventRef Task2 = FFunctionGraphTask::CreateAndDispatchWhenReady([&]()
+	{
+          TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), SpawnMeshRequest->GetId());
+          for (auto AssertedActor : Actors)
+            {
+              UE_LOG(LogTemp, Display, TEXT("broadcast assert object %s"), *AssertedActor->GetName());
+              OnObjectAsserted.Broadcast(AssertedActor);
+            }
+        }, TStatId(), nullptr, ENamedThreads::GameThread);
+	FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task2);
+
 	return MakeShareable<FROSBridgeSrv::SrvResponse>
 		(new FROSSpawnModelSrv::Response(Params.Id, FinalActorName, *ErrType, ServiceSuccess));
 }
-

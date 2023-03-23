@@ -6,7 +6,6 @@
 #include "AssetSpawner.generated.h"
 
 
-
 USTRUCT()
 struct UWORLDCONTROL_API FAssetSpawner
 {
@@ -50,7 +49,7 @@ public:
 		bool bSpawnCollisionCheck;
 	};
 
-    static bool SpawnAsset(UWorld* World, FSpawnAssetParams Params, FString &FinalActorName, FString &ErrType);
+        static bool SpawnAsset(UWorld* World, FSpawnAssetParams Params, FString &FinalActorName, FString &ErrType);
     static bool SpawnProMeshAsset(UWorld* World,FSpawnAssetParams Params,FString &FinalActorName, FString &ErrType);
 
 };

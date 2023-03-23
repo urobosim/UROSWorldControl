@@ -65,7 +65,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnSemanticMapServer::Callback(
 	FString ErrType;
 		FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([&]()
 		{
-			bSuccess = FAssetSpawner::SpawnAsset(World, Params, FinalActorName, ErrType);
+                  bSuccess = FAssetSpawner::SpawnAsset(World, Params, FinalActorName, ErrType);
 		}, TStatId(), nullptr, ENamedThreads::GameThread);
 
 		//wait code above to complete
@@ -167,12 +167,12 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnSemanticMapServer::Callback(
 				//Actors were found and will be attached
 				bSuccess = FAssetModifier::AttachToParent(*Parent, *Child);
 			}
-			
+
 			if (!Child)
 			{
 				UE_LOG(LogTemp, Error, TEXT("[%s]: Actor with id:\"%s\" does not exist."), *FString(__FUNCTION__), *RelationDescription.GetChildId());
 			}
-			 
+
 			if (!Parent)
 			{
 				UE_LOG(LogTemp, Error, TEXT("[%s]: Actor with id:\"%s\" does not exist."), *FString(__FUNCTION__), *RelationDescription.GetParentId());
@@ -183,7 +183,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnSemanticMapServer::Callback(
 			if (!bSuccess)
 			{
 				FailedRelations.Add(RelationDescription);
-			}			
+			}
 		}
 	}, TStatId(), nullptr, ENamedThreads::GameThread);
 
@@ -195,4 +195,3 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnSemanticMapServer::Callback(
 		(new FROSSpawnSemanticMapSrv::Response(bAllSuccessfull, FailedModelIds, FailedConstraintIds, FailedRelations));
 
 }
-

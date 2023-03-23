@@ -16,4 +16,10 @@ public:
 
     UFUNCTION()
     void ResetOrientation(AStaticMeshActor* InActor, FRotator InRotator);
+
+    UFUNCTION()
+    void SetPhysicsEnabled(UStaticMeshComponent* InComponent, bool bEnable);
+
+    UFUNCTION()
+      void ReinitConstraint(UPhysicsConstraintComponent* InComponent, UStaticMeshComponent* InComp1, UStaticMeshComponent* InComp2);
 };

@@ -37,6 +37,10 @@ void URWCManager::Register(FString DefaultNamespace, UWorld* InWorld)
 	SetupServiceServers();
 }
 
+FString URWCManager::GetNamespace()
+{
+  return Namespace;
+}
 
 void URWCManager::SetupServiceServers()
 {
