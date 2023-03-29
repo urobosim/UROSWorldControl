@@ -162,7 +162,10 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		SpawnedItem->GetStaticMeshComponent()->SetSimulatePhysics(Properties.bSimulatePhysics);
 		SpawnedItem->GetStaticMeshComponent()->SetGenerateOverlapEvents(Properties.bGenerateOverlapEvents);
 		SpawnedItem->GetStaticMeshComponent()->SetEnableGravity(Properties.bGravity);
-		SpawnedItem->GetStaticMeshComponent()->SetMassOverrideInKg(NAME_None, Properties.Mass);
+                if(Properties.Mass != 0)
+                  {
+                    SpawnedItem->GetStaticMeshComponent()->SetMassOverrideInKg(NAME_None, Properties.Mass);
+                  }
 
 		SpawnedItem->SetMobility(Properties.Mobility);
 
