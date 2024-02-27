@@ -215,11 +215,22 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 			Tag.Key,
 			Tag.Value);
 	}
+
 #if WITH_EDITOR
-	SpawnedItem->Modify();
+        if(SpawnedItem)
+          {
+            SpawnedItem->Modify();
+          }
+#endif
+
+#if WITH_EDITOR
 	GEditor->EndTransaction();
 #endif
-	FinalActorName = SpawnedItem->GetName();
+
+        if(SpawnedItem)
+          {
+            FinalActorName = SpawnedItem->GetName();
+          }
 
 	return true;
 }

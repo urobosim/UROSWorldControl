@@ -29,8 +29,8 @@ protected:
 
 
 private:
-	UStaticMesh* LoadMesh(FString Name, FString StartDir);
-	UMaterialInterface* LoadMaterial(FString Name, FString StartDir);
+	// UStaticMesh* LoadMesh(FString Name, FString StartDir);
+	// UMaterialInterface* LoadMaterial(FString Name, FString StartDir);
 
 
 public:

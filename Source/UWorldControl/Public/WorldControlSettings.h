@@ -27,4 +27,7 @@ public:
 
   UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
     float ResetOrientationDelay = 1.0;
+
+  UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
+    bool bDebugMode = false;
 };

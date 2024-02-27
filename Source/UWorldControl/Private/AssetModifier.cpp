@@ -268,40 +268,69 @@ TArray<FString> FAssetModifier::FindAsset(FString Name, FString StartDir)
 
 UStaticMesh* FAssetModifier::LoadMesh(FString Name, FString StartDir)
 {
-	UStaticMesh* Mesh = nullptr;
-	//Look for file Recursively
 
-	FString Filename = Name.StartsWith(TEXT("SM_")) ? TEXT("") : TEXT("SM_");
-	Filename += Name;
-	Filename += Name.EndsWith(TEXT(".uasset")) ? TEXT("") : TEXT(".uasset");
-        UE_LOG(LogTemp, Warning, TEXT("[%s]: SpawnModel Name %s"), *FString(__FUNCTION__),*Name);
+  const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
 
-	TArray<FString> FileLocations;
-    FFileManagerGeneric Fm;
-	Fm.FindFilesRecursive(FileLocations, *FPaths::ProjectContentDir().Append(StartDir), *Filename, true, false, true);
+  UStaticMesh* Mesh = nullptr;
+  //Look for file Recursively
 
-	if (FileLocations.Num() == 0)
-	{
-		//Try again with whole ContentDir
-		Fm.FindFilesRecursive(FileLocations, *FPaths::ProjectContentDir(), *Filename, true, false, true);
-	}
+  FString Filename = Name.StartsWith(TEXT("SM_")) ? TEXT("") : TEXT("SM_");
+  Filename += Name;
+  Filename += Name.EndsWith(TEXT(".uasset")) ? TEXT("") : TEXT(".uasset");
+  UE_LOG(LogTemp, Warning, TEXT("[%s]: SpawnModel Name %s"), *FString(__FUNCTION__),*Name);
 
-	for (auto Loc : FileLocations)
-	{
-		//Try all found files until one works.
-		if (Mesh == nullptr)
-		{
-			Loc.RemoveFromStart(FPaths::ProjectContentDir());
-			int Last;
-			Loc.FindLastChar('.', Last);
-			Loc.RemoveAt(Last, Loc.Len() - Last);
+  TArray<FString> FileLocations;
+  FFileManagerGeneric Fm;
 
-			FString FoundPath = "StaticMesh'/Game/" + Loc + ".SM_" + Name + "'";
-            Mesh = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, *FoundPath));
-		}
-	}
+  if(Settings->bDebugMode)
+    {
+      UE_LOG(LogTemp, Warning, TEXT("[%s]: Start looking for file"), *FString(__FUNCTION__));
+    }
 
-	return Mesh;
+  Fm.FindFilesRecursive(FileLocations, *FPaths::ProjectContentDir().Append(StartDir), *Filename, true, false, true);
+
+  if (FileLocations.Num() == 0)
+    {
+      //Try again with whole ContentDir
+      Fm.FindFilesRecursive(FileLocations, *FPaths::ProjectContentDir(), *Filename, true, false, true);
+    }
+
+  if(Settings->bDebugMode)
+    {
+      UE_LOG(LogTemp, Warning, TEXT("[%s]: Finished looking for file"), *FString(__FUNCTION__));
+    }
+
+  for (auto Loc : FileLocations)
+    {
+      //Try all found files until one works.
+      if (Mesh == nullptr)
+        {
+
+          Loc.RemoveFromStart(FPaths::ProjectContentDir());
+          int Last;
+          Loc.FindLastChar('.', Last);
+
+          if(Settings->bDebugMode)
+            {
+              UE_LOG(LogTemp, Warning, TEXT("[%s]: Start path formating for Mesh"), *FString(__FUNCTION__));
+            }
+          Loc.RemoveAt(Last, Loc.Len() - Last);
+
+          FString FoundPath = "StaticMesh'/Game/" + Loc + ".SM_" + Name + "'";
+
+          if(Settings->bDebugMode)
+            {
+              UE_LOG(LogTemp, Warning, TEXT("[%s]: Start load Mesh"), *FString(__FUNCTION__));
+            }
+          Mesh = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, *FoundPath));
+        }
+    }
+
+  if(Settings->bDebugMode)
+    {
+      UE_LOG(LogTemp, Warning, TEXT("[%s]: Finished looking for Mesh"), *FString(__FUNCTION__));
+    }
+  return Mesh;
 }
 
 UMaterialInterface* FAssetModifier::LoadMaterial(FString Name, FString StartDir)
