@@ -13,7 +13,9 @@
 
 bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FString &FinalActorName, FString &ErrType)
 {
-	//Check if World is avialable
+
+  const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
+        //Check if World is avialable
 	if (!World)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[%s]: Couldn't find the World."), *FString(__FUNCTION__));
@@ -86,15 +88,45 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 #endif
 		return false;
               }
+            else
+              {
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s]: found Mesh %s"), *FString(__FUNCTION__), *Mesh->GetName());
+                  }
+              }
           }
 
 	// AStaticMeshActor* SpawnedItem;
 
-	//Check if Id is used already
-	TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), Params.Id);
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
+                if(World)
+                  {
+                    if(Settings->bDebugMode)
+                      {
+                        UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                      }
+                  }
+                UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: %s"), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *Params.Id);
 
-	if (!Actors.IsValidIndex(0))
-	{
+        //Check if Id is used already
+	// TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), Params.Id);
+
+        //         if(Settings->bDebugMode)
+        //           {
+        //             UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+        //           }
+	// if (!Actors.IsValidIndex(0))
+	// {
+
+
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 		// SpawnCollission Testing
 		TArray<FOverlapResult> Results;
                 bool bIsBlocked = false;
@@ -107,6 +139,10 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                                                                    FCollisionShape::MakeBox(Mesh->GetBoundingBox().GetExtent()));
                   }
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 		if (bIsBlocked && Params.bSpawnCollisionCheck)
 		{
 			UE_LOG(LogTemp, Error, TEXT("[%s]: Spawn Location is obstructed for \"%s\""), *FString(__FUNCTION__), *Params.Id);
@@ -117,6 +153,10 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 			return false;
 		}
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 		//Actual Spawning MeshComponent
                 if(RetClass)
                   {
@@ -133,6 +173,10 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                     return false;
                   }
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 		// Needs to be movable if the game is running.
                 SpawnedItem->SetMobility(EComponentMobility::Movable);
 
@@ -142,6 +186,10 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                     SpawnedItem->GetStaticMeshComponent()->SetStaticMesh(Mesh);
                   }
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 		if (Params.MaterialPaths.Num())
 		{
 			for (int i = 0; i < Params.MaterialPaths.Num(); i++)
@@ -158,9 +206,14 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		SpawnedItem->SetActorLabel(Label);
 #endif
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 		FPhysicsProperties Properties = Params.PhysicsProperties;
 		SpawnedItem->GetStaticMeshComponent()->SetSimulatePhysics(Properties.bSimulatePhysics);
 		SpawnedItem->GetStaticMeshComponent()->SetGenerateOverlapEvents(Properties.bGenerateOverlapEvents);
+		SpawnedItem->GetStaticMeshComponent()->SetNotifyRigidBodyCollision(Properties.bGenerateOverlapEvents);
 		SpawnedItem->GetStaticMeshComponent()->SetEnableGravity(Properties.bGravity);
                 if(Properties.Mass != 0)
                   {
@@ -169,10 +222,13 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 
 		SpawnedItem->SetMobility(Properties.Mobility);
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
                 UAssetUtils* AssetUtil = NewObject<UAssetUtils>(SpawnedItem);
 
 
-                const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
 
                 if(AssetUtil)
                   {
@@ -184,19 +240,33 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                         SpawnedItem->GetWorldTimerManager().SetTimer(MyTimerHandle, ResetOrientationDelegate, Settings->ResetOrientationDelay, false);
                       }
                   }
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 
-	}
-	else
-	{
-		//ID is already taken
-		UE_LOG(LogTemp, Error, TEXT("[%s]: Semlog id: \"%s\" is not unique, therefore nothing was spawned."), *FString(__FUNCTION__), *Params.Id);
-		ErrType = "1";
+// 	}
+// 	else
+// 	{
 
-#if WITH_EDITOR
-	GEditor->EndTransaction();
-#endif
-		return false;
-	}
+//                 if(Settings->bDebugMode)
+//                   {
+//                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+//                   }
+// 		//ID is already taken
+// 		UE_LOG(LogTemp, Error, TEXT("[%s]: Semlog id: \"%s\" is not unique, therefore nothing was spawned."), *FString(__FUNCTION__), *Params.Id);
+// 		ErrType = "1";
+
+// #if WITH_EDITOR
+// 	GEditor->EndTransaction();
+// #endif
+
+//                 if(Settings->bDebugMode)
+//                   {
+//                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+//                   }
+// 		return false;
+// 	}
 
 	//Id tag to Actor
 	FTags::AddKeyValuePair(
@@ -205,9 +275,13 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 		TEXT("id"),
 		Params.Id);
 
+        if(Settings->bDebugMode)
+          {
+            UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+          }
 
-	//Add other Tags to Actor
-	for (auto Tag : Params.Tags)
+        //Add other Tags to Actor
+        for (auto Tag : Params.Tags)
 	{
 		FTags::AddKeyValuePair(
 			SpawnedItem,
@@ -216,6 +290,10 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 			Tag.Value);
 	}
 
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 #if WITH_EDITOR
         if(SpawnedItem)
           {
@@ -226,13 +304,21 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
 #if WITH_EDITOR
 	GEditor->EndTransaction();
 #endif
+                if(Settings->bDebugMode)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                  }
 
         if(SpawnedItem)
           {
             FinalActorName = SpawnedItem->GetName();
           }
 
-	return true;
+        if(Settings->bDebugMode)
+          {
+            UE_LOG(LogTemp, Warning, TEXT("[%s]: End of Function"), *FString(__FUNCTION__));
+          }
+        return true;
 }
 
 

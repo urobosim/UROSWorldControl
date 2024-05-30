@@ -19,6 +19,7 @@ public:
 		bool bSimulatePhysics;
 		bool bGravity;
 		bool bGenerateOverlapEvents;
+		bool bGenerateHitEvents;
 		float Mass;
 	};
 
