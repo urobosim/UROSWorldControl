@@ -113,14 +113,14 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                 UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: %s"), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *Params.Id);
 
         //Check if Id is used already
-	// TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), Params.Id);
+	 TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), Params.Id);
 
-        //         if(Settings->bDebugMode)
-        //           {
-        //             UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
-        //           }
-	// if (!Actors.IsValidIndex(0))
-	// {
+                 if(Settings->bDebugMode)
+                   {
+                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                   }
+	if (!Actors.IsValidIndex(0))
+	 {
 
 
                 if(Settings->bDebugMode)
@@ -245,28 +245,28 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
                   }
 
-// 	}
-// 	else
-// 	{
+ 	}
+ 	else
+ 	{
 
-//                 if(Settings->bDebugMode)
-//                   {
-//                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
-//                   }
-// 		//ID is already taken
-// 		UE_LOG(LogTemp, Error, TEXT("[%s]: Semlog id: \"%s\" is not unique, therefore nothing was spawned."), *FString(__FUNCTION__), *Params.Id);
-// 		ErrType = "1";
+                 if(Settings->bDebugMode)
+                   {
+                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                   }
+ 		//ID is already taken
+ 		UE_LOG(LogTemp, Error, TEXT("[%s]: Semlog id: \"%s\" is not unique, therefore nothing was spawned."), *FString(__FUNCTION__), *Params.Id);
+ 		ErrType = "1";
 
-// #if WITH_EDITOR
-// 	GEditor->EndTransaction();
-// #endif
+ #if WITH_EDITOR
+ 	GEditor->EndTransaction();
+ #endif
 
-//                 if(Settings->bDebugMode)
-//                   {
-//                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
-//                   }
-// 		return false;
-// 	}
+                 if(Settings->bDebugMode)
+                   {
+                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                   }
+ 		return false;
+ 	}
 
 	//Id tag to Actor
 	FTags::AddKeyValuePair(
