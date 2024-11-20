@@ -108,9 +108,9 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                     if(Settings->bDebugMode)
                       {
                         UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                        UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: %s"), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *Params.Id);
                       }
                   }
-                UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: %s"), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *Params.Id);
 
         //Check if Id is used already
 	 TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), Params.Id);
@@ -403,7 +403,7 @@ bool FAssetSpawner::SpawnProMeshAsset(UWorld *World, FSpawnAssetParams Params, F
     Triangles.Add(0);
     Triangles.Add(5);
 
-
+ 
     //Front
     TArray<FVector> FrontVertices; //Points
     TArray<int32> FrontTriangles;
