@@ -6,6 +6,7 @@
 #include "Ids.h"
 #include "Conversions.h"
 #include "AssetSpawner.h"
+#include "Engine.h"
 
 TSharedPtr<FROSBridgeSrv::SrvRequest> FROSSpawnModelServer::FromJson(TSharedPtr<FJsonObject> JsonObject) const
 {
@@ -58,6 +59,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnModelServer::Callback(TSharedPtr
         AActor* SpawnedActor = nullptr;
 	FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([&]()
 	{
+          World = GEngine->GameViewport->GetWorld();
           ServiceSuccess = FAssetSpawner::SpawnAsset(World, Params, FinalActorName, ErrType);
           // TArray<AActor*> Actors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), FinalActorName);
           // for (auto AssertedActor : Actors)
@@ -85,6 +87,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSSpawnModelServer::Callback(TSharedPtr
         }, TStatId(), nullptr, ENamedThreads::GameThread);
 	FTaskGraphInterface::Get().WaitUntilTaskCompletes(Task2);
 
-	return MakeShareable<FROSBridgeSrv::SrvResponse>
+        UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+        return MakeShareable<FROSBridgeSrv::SrvResponse>
 		(new FROSSpawnModelSrv::Response(Params.Id, FinalActorName, *ErrType, ServiceSuccess));
 }

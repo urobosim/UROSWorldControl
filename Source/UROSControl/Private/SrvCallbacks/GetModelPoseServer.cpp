@@ -29,7 +29,9 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSGetModelPoseServer::Callback(TSharedP
 // 	//The rest has to be done in the game thread
 	FGraphEventRef Task = FFunctionGraphTask::CreateAndDispatchWhenReady([&]()
 	{
-		// GetActorsWithKeyValuePair (which internally uses TActorIterator) needs a game thread
+
+          World = GEngine->GameViewport->GetWorld();
+                // GetActorsWithKeyValuePair (which internally uses TActorIterator) needs a game thread
 		TArray<AActor*> AllMatchingActors = FTags::GetActorsWithKeyValuePair(World, TEXT("SemLog"), TEXT("Id"), UniqueId);
 
 		AActor* Actor = nullptr;
