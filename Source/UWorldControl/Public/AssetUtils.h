@@ -22,4 +22,7 @@ public:
 
     UFUNCTION()
       void ReinitConstraint(UPhysicsConstraintComponent* InComponent, UStaticMeshComponent* InComp1, UStaticMeshComponent* InComp2);
+
+    UFUNCTION()
+      void ReinitConstraintAndSetPhysics(UPhysicsConstraintComponent* InComponent, UStaticMeshComponent* InComp1, UStaticMeshComponent* InComp2, bool bInEnable);
 };

@@ -103,13 +103,23 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                   {
                     UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
                   }
+
                 if(World)
                   {
+
                     if(Settings->bDebugMode)
                       {
-                        UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
                         UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: %s"), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *Params.Id);
+                        if(World->bIsTearingDown)
+                          {
+                            UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: World is Tearing Down"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
+                          }
+                        // UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: World Name %s"), *FString(__FUNCTION__), *FString::FromInt(__LINE__), *World->GetName());
                       }
+                  }
+                else
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: World not valid"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
                   }
 
         //Check if Id is used already
@@ -120,6 +130,7 @@ bool FAssetSpawner::SpawnAsset(UWorld* World, const FSpawnAssetParams Params, FS
                      UE_LOG(LogTemp, Warning, TEXT("[%s:%s]: reached"), *FString(__FUNCTION__), *FString::FromInt(__LINE__));
                    }
 	if (!Actors.IsValidIndex(0))
+	// if (true)
 	 {
 
 
@@ -403,7 +414,7 @@ bool FAssetSpawner::SpawnProMeshAsset(UWorld *World, FSpawnAssetParams Params, F
     Triangles.Add(0);
     Triangles.Add(5);
 
- 
+
     //Front
     TArray<FVector> FrontVertices; //Points
     TArray<int32> FrontTriangles;

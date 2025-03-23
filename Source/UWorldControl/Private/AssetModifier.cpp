@@ -52,25 +52,60 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
         const UWorldControlSettings* Settings = GetDefault<UWorldControlSettings>();
 
         TArray<UPhysicsConstraintComponent*> Constraints;
+        TArray<UStaticMeshComponent*> Components;
         UStaticMeshComponent* Oj1 = nullptr;
         UStaticMeshComponent* Oj2 = nullptr;
         Actor->GetComponents<UPhysicsConstraintComponent>(Constraints, false);
+        Actor->GetComponents<UStaticMeshComponent>(Components, false);
+        UStaticMeshComponent* Parent1 = nullptr;
+        UStaticMeshComponent* Parent2 = nullptr;
+        UStaticMeshComponent* Root1 = nullptr;
+        UStaticMeshComponent* Root2 = nullptr;
+
+        // Prevent objects being checked twice if multiple constraints are connected to an object
+        TArray<UStaticMeshComponent*> HandledObject;
 
         for(auto& Constraint : Constraints)
           {
             if(!Constraint->IsBroken())
               {
-                //TODO: Should it be checked if phisics is enabled or not?
+                //TODO: Should it be checked if physics is enabled or not?
                 if(AActor* Actor1 = Constraint->ConstraintActor1)
                   {
                     Oj1 = Cast<UStaticMeshComponent>(Actor1->GetDefaultSubobjectByName(Constraint->ComponentName1.ComponentName));
                     if(Oj1)
                       {
-                        Oj1->SetSimulatePhysics(false);
-
-                        if(Cast<USceneComponent>(Oj1) != Actor->GetRootComponent())
+                            // Only change physics of Oj1 if it simulates Physics, else find the root component that has physics enable and therfore is movable
+                        if(!HandledObject.Contains(Oj1))
                           {
-                            Oj1->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, false), NAME_None);
+                            Parent1 = Cast<UStaticMeshComponent>(Oj1->GetAttachParent());
+                            if(Parent1)
+                              {
+                                while(Parent1)
+                                  {
+                                    if(Parent1->GetAttachParent())
+                                      {
+                                        Parent1 = Cast<UStaticMeshComponent>(Parent1->GetAttachParent());
+                                      }
+                                    else
+                                      {
+                                        Root1 = Parent1;
+                                        break;
+                                      }
+                                  }
+                              }
+                            else
+                              {
+                                Root1 = Oj1;
+                              }
+                            // }
+                            Root1->SetSimulatePhysics(false);
+                            HandledObject.Add(Oj1);
+                            UE_LOG(LogTemp, Warning, TEXT("[%s]: Root1 Name %s"), *FString(__FUNCTION__), *Root1->GetName());
+                            if(Cast<USceneComponent>(Root1) != Actor->GetRootComponent())
+                              {
+                                Root1->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, false), NAME_None);
+                              }
                           }
                       }
                   }
@@ -80,26 +115,61 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
                     Oj2 = Cast<UStaticMeshComponent>(Actor2->GetDefaultSubobjectByName(Constraint->ComponentName2.ComponentName));
                     if(Oj2)
                       {
-                        Oj2->SetSimulatePhysics(false);
-                      }
-                    if(Cast<USceneComponent>(Oj2) != Actor->GetRootComponent())
-                      {
-                        Oj2->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, false), NAME_None);
+                        if(!HandledObject.Contains(Oj2))
+                          {
+                            // Only change physics of Oj1 if it simulates Physics, else find the root component that has physics enable and therfore is movable
+                            Parent2 = Cast<UStaticMeshComponent>(Oj2->GetAttachParent());
+                            if(Parent2)
+                              {
+                                while(Parent2)
+                                  {
+                                    if(Parent2->GetAttachParent())
+                                      {
+                                        Parent2 = Cast<UStaticMeshComponent>(Parent2->GetAttachParent());
+                                      }
+                                    else
+                                      {
+                                        Root2 = Parent2;
+                                        break;
+                                      }
+                                  }
+                              }
+                            else
+                              {
+                                Root2 = Oj2;
+                              }
+                            // }
+                            Root2->SetSimulatePhysics(false);
+                            HandledObject.Add(Oj2);
+                            UE_LOG(LogTemp, Warning, TEXT("[%s]: Root2 Name %s"), *FString(__FUNCTION__), *Root2->GetName());
+
+                            if(Cast<USceneComponent>(Root2) != Actor->GetRootComponent())
+                              {
+                                Root2->AttachToComponent(Actor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, false), NAME_None);
+                              }
+                          }
                       }
                   }
+                if(Root2)
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s]: 1 %s"), *FString(__FUNCTION__), *Root2->GetName());
+                  }
+                else
+                  {
+                    UE_LOG(LogTemp, Warning, TEXT("[%s]: 2"), *FString(__FUNCTION__));
+                  }
+
+                FTimerDelegate ConstraintInit = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ReinitConstraintAndSetPhysics, Constraint, Root1, Root2, true);
+                Actor->GetWorldTimerManager().SetTimerForNextTick(ConstraintInit);
               }
-
-            FTimerDelegate ConstraintInit = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ReinitConstraint, Constraint, Oj1, Oj2);
-            Actor->GetWorldTimerManager().SetTimerForNextTick(ConstraintInit);
           }
-
 
 
         while(!bSuccess and !bTimeout)
           {
             FHitResult SweepHitResult;
 
-            Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
+            // Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
             Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::ResetPhysics);
             Count++;
             bSuccess = !SweepHitResult.bBlockingHit;
@@ -114,18 +184,18 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
           }
 
 
-        if(Settings->bUseResetOrientation)
-          {
-            FTimerHandle MyTimerHandle;
-            // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
-            FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, Cast<AStaticMeshActor>(Actor), Rotator);
-            Actor->GetWorldTimerManager().SetTimerForNextTick(ResetOrientationDelegate);
-          }
+        // if(Settings->bUseResetOrientation)
+        //   {
+        //     FTimerHandle MyTimerHandle;
+        //     // InTimerManager.SetTimer(MyTimerHandle, this, &UPrologQueryClient::CallService, 1.0f, false);
+        //     FTimerDelegate ResetOrientationDelegate = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::ResetOrientation, Cast<AStaticMeshActor>(Actor), Rotator);
+        //     Actor->GetWorldTimerManager().SetTimerForNextTick(ResetOrientationDelegate);
+        //   }
 
-        FTimerDelegate ResetPhysics1 = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::SetPhysicsEnabled, Oj1, true);
-        FTimerDelegate ResetPhysics2 = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::SetPhysicsEnabled, Oj2, true);
-        Actor->GetWorldTimerManager().SetTimerForNextTick(ResetPhysics1);
-        Actor->GetWorldTimerManager().SetTimerForNextTick(ResetPhysics2);
+        // FTimerDelegate ResetPhysics1 = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::SetPhysicsEnabled, Root1, true);
+        // FTimerDelegate ResetPhysics2 = FTimerDelegate::CreateUObject( AssetUtil,  &UAssetUtils::SetPhysicsEnabled, Root2, true);
+        // Actor->GetWorldTimerManager().SetTimerForNextTick(ResetPhysics1);
+        // Actor->GetWorldTimerManager().SetTimerForNextTick(ResetPhysics2);
 
 	if (!bSuccess)
 	{
