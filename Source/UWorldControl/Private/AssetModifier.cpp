@@ -165,23 +165,24 @@ bool FAssetModifier::Relocate(AActor* Actor, FVector Location, FRotator Rotator)
           }
 
 
-        while(!bSuccess and !bTimeout)
-          {
-            FHitResult SweepHitResult;
+        Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
+        bSuccess = true;
+        // while(!bSuccess and !bTimeout)
+        //   {
+        //     FHitResult SweepHitResult;
 
-            // Actor->SetActorLocationAndRotation(Location, Rotator, false, nullptr, ETeleportType::ResetPhysics);
-            Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::ResetPhysics);
-            Count++;
-            bSuccess = !SweepHitResult.bBlockingHit;
-            FVector Normal = SweepHitResult.ImpactNormal;
+        //     Actor->SetActorLocationAndRotation(Location + Offset, Rotator, true, &SweepHitResult,  ETeleportType::ResetPhysics);
+        //     Count++;
+        //     bSuccess = !SweepHitResult.bBlockingHit;
+        //     FVector Normal = SweepHitResult.ImpactNormal;
 
-            Offset = Offset + Normal;
-            if(Count >= 10)
-              {
-                bTimeout = true;
-                UE_LOG(LogTemp, Warning, TEXT("[%s]: Timeout"), *FString(__FUNCTION__));
-              }
-          }
+        //     Offset = Offset + Normal;
+        //     if(Count >= 10)
+        //       {
+        //         bTimeout = true;
+        //         UE_LOG(LogTemp, Warning, TEXT("[%s]: Timeout"), *FString(__FUNCTION__));
+        //       }
+        //   }
 
 
         // if(Settings->bUseResetOrientation)
