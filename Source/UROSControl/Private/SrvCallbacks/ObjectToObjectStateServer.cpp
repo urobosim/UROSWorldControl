@@ -31,7 +31,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSObjectToObjectStateServer::Callback(T
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("%s: Source Object with Id \"%s\" not found"), __FUNCTION__, *SourceObjectId);
+				UE_LOG(LogTemp, Error, TEXT("%hs: Source Object with Id \"%s\" not found"), __FUNCTION__, *SourceObjectId);
 				ServiceSuccess = false;
 				return;
 			}
@@ -42,7 +42,7 @@ TSharedPtr<FROSBridgeSrv::SrvResponse> FROSObjectToObjectStateServer::Callback(T
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("%s: Other Object with Id \"%s\" not found"), __FUNCTION__, *OtherObjectId);
+				UE_LOG(LogTemp, Error, TEXT("%hs: Other Object with Id \"%s\" not found"), __FUNCTION__, *OtherObjectId);
 				ServiceSuccess = false;
 				return;
 			}
